@@ -4,11 +4,10 @@
       <v-text-field
         type="number"
         height="55px"
-        v-model="defaultAmount"
-        :label="this.inputType + ' ' + this.selectedCoin.name"
+        v-model="exchangeProps.amount"
+        :label="exchangeProps.label + ' ' + this.exchangeProps.selected.name"
         placeholder="Enter Amount"
         class="pt-0 mt-0"
-        :loading="loading"
         hide-details
         outlined
       ></v-text-field>
@@ -26,9 +25,9 @@
             ><v-img
               class="mr-3"
               style="max-width:23px; border-radius:50%"
-              :src="selectedCoin.logoUrl"
+              :src="exchangeProps.selected.logoUrl"
             ></v-img
-            >{{ selectedCoin.symbol }}<v-spacer /><v-icon right
+            >{{ exchangeProps.selected.symbol }}<v-spacer /><v-icon right
               >mdi-chevron-down</v-icon
             ></v-btn
           >
@@ -76,7 +75,7 @@
         </v-card>
       </v-dialog>
     </v-col>
-    <v-row v-if="this.inputType == 'Send'">
+    <v-row v-if="this.exchangeProps.label === 'Send'">
       <v-col class="pb-0 pl-6 pt-4"> </v-col>
     </v-row>
   </v-row>
@@ -86,41 +85,18 @@
 export default {
   name: 'CoinForm',
   props: {
-    inputType: String,
-    loading: {
-      type: Boolean,
-      default: function() {
-        return false
-      }
-    },
-    coins: {
-      type: Array,
-      default: function() {
-        return []
-      }
-    }
+    coins: Array,
+    exchangeProps: Object
   },
 
   data: () => ({
     dialog: false,
-    searchCoin: '',
-    defaultAmount: {
-      type: Number,
-      default: function() {
-        return null
-      }
-    },
-    selectedCoin: {
-      type: Object,
-      default: function() {
-        return {}
-      }
-    }
+    searchCoin: ''
   }),
   computed: {
     filterCoins() {
       let searchCoin = this.searchCoin
-      return this.coins.filter(function(coin) {
+      return this.coins.filter(coin => {
         return (
           coin.isActive === true &&
           coin.isFiat === false &&
@@ -131,24 +107,8 @@ export default {
   },
   methods: {
     selectCoin: function(coin) {
-      this.selectedCoin = coin
+      this.$emit('select-coin', coin)
       this.dialog = false
-    }
-  },
-  created() {
-    if (this.inputType === 'Send') {
-      this.selectedCoin = {
-        name: 'Bitcoin',
-        symbol: 'BTC',
-        logoUrl: 'https://files.coinswitch.co/public/coins/btc.png'
-      }
-      this.defaultAmount = 0.1
-    } else {
-      this.selectedCoin = {
-        name: 'Ethereum',
-        symbol: 'ETH',
-        logoUrl: 'https://files.coinswitch.co/public/coins/eth.png'
-      }
     }
   }
 }
