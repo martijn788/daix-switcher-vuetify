@@ -216,7 +216,6 @@ export default {
           destinationCoin: dest.selected.symbol
         }
       }).then(response => {
-        console.log(response)
         if (response.data.data.length === 0) {
           this.error.pairOffline.state = true
         } else {
