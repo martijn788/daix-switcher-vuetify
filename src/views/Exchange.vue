@@ -62,7 +62,8 @@ export default {
       },
       limit: Object,
       error: {
-        badAmountErr: false
+        badAmountErr: false,
+        responseErr: String
       }
     }
   },
@@ -83,20 +84,10 @@ export default {
       })
     },
     calcRate(response) {
-      console.log(response)
       return (
         this.depositCoin.amount * response.data.data.rate -
         response.data.data.minerFee
       )
-    },
-    checklimit() {
-      let depoAmount = this.depositCoin.amount
-      if (
-        depoAmount < this.limit.limitMinDepositCoin ||
-        depoAmount > this.limit.limitMaxDepositCoin
-      ) {
-        console.log('Bad Amount')
-      }
     },
     swapCoins() {
       this.depositCoin.selected = [
@@ -119,7 +110,7 @@ export default {
         })
         .then(this.setCoin)
         .catch(response => {
-          console.log(response.data.msg)
+          this.error.responseErr = response.data.msg
         })
     },
     getRate() {
@@ -156,7 +147,7 @@ export default {
           }
         })
         .catch(response => {
-          console.log(response.data.msg)
+          this.error.responseErr = response.data.msg
         })
     }
   },
