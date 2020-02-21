@@ -39,16 +39,34 @@
             >This trading pair is currently not available.</v-alert
           >
         </div>
-        <div class="text-center">
-          <v-btn
-            :disabled="error.badAmountErr.state || error.pairOffline.state"
-            color="primary"
-            class="mt-4 px-5"
-            height="45px"
-          >
-            Proceed
-          </v-btn>
-        </div>
+
+        <v-dialog
+          v-model="dialog"
+          fullscreen
+          hide-overlay
+          transition="dialog-bottom-transition"
+        >
+          <template v-slot:activator="{ on }">
+            <div class="text-center">
+              <v-btn
+                :disabled="error.badAmountErr.state || error.pairOffline.state"
+                color="primary"
+                class="mt-4 px-5"
+                height="45px"
+                v-on="on"
+              >
+                Proceed
+              </v-btn>
+            </div>
+          </template>
+          <v-card class="mx-auto mt-5">
+            <div class="text-right">
+              <v-btn icon @click="dialog = false" class="ma-2">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
+          </v-card>
+        </v-dialog>
       </v-col>
     </v-row>
   </v-container>
@@ -70,6 +88,7 @@ export default {
   name: 'Exchange',
   data() {
     return {
+      dialog: false,
       coins: [],
       limit: Object,
       depositCoin: {
@@ -197,6 +216,7 @@ export default {
           destinationCoin: dest.selected.symbol
         }
       }).then(response => {
+        console.log(response)
         if (response.data.data.length === 0) {
           this.error.pairOffline.state = true
         } else {

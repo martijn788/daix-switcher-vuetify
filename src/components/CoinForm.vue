@@ -36,46 +36,46 @@
             ></v-btn
           >
         </template>
-        <v-card class="mx-auto">
-          <v-toolbar color="primary">
-            <v-btn icon @click="dialog = false">
+        <v-card class="mx-auto mt-5">
+          <div class="text-right">
+            <v-btn icon @click="dialog = false" class="ma-2">
               <v-icon>mdi-close</v-icon>
             </v-btn>
-          </v-toolbar>
+          </div>
+
           <v-text-field
             autofocus
             v-model="searchCoin"
-            class="mx-8"
+            class="px-8"
             placeholder="Search.."
           ></v-text-field>
-          <v-card class="mx-auto" tile>
-            <v-list flat style="overflow-y:scroll">
-              <v-subheader>Available Coins</v-subheader>
-              <v-list-item-group color="primary">
-                <v-list-item
-                  @click="selectCoin(coin)"
-                  v-for="(coin, i) in filterCoins"
-                  :key="i"
-                >
-                  <v-img
-                    class="mr-3"
-                    style="max-width:30px; border-radius:50%"
-                    :src="coin.logoUrl"
-                  ></v-img>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="ml-4"
-                      style="text-transform:uppercase"
-                      v-text="coin.symbol"
-                    ></v-list-item-title>
-                  </v-list-item-content>
-                  <v-list-item-content>
-                    <v-list-item-title v-text="coin.name"></v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </v-list-item-group>
-            </v-list>
-          </v-card>
+          <v-list flat style="overflow-y:scroll" height="80vh">
+            <v-subheader class="pl-8">Available Coins</v-subheader>
+            <v-list-item-group color="primary">
+              <v-list-item
+                @click="selectCoin(coin)"
+                v-for="(coin, i) in filterCoins"
+                :key="i"
+                class="px-8"
+              >
+                <v-img
+                  class="mr-3"
+                  style="max-width:30px; border-radius:50%"
+                  :src="coin.logoUrl"
+                ></v-img>
+                <v-list-item-content>
+                  <v-list-item-title
+                    class="ml-4"
+                    style="text-transform:uppercase"
+                    v-text="coin.symbol"
+                  ></v-list-item-title>
+                </v-list-item-content>
+                <v-list-item-content>
+                  <v-list-item-title v-text="coin.name"></v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
           <v-card class="mx-5 mt-6"> </v-card>
         </v-card>
       </v-dialog>
