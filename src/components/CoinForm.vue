@@ -11,6 +11,7 @@
         class="pt-0 mt-0"
         :readonly="exchangeProps.disabled"
         :loading="exchangeProps.loading"
+        :disabled="exchangeProps.loading"
         hide-details
         outlined
       ></v-text-field>
@@ -35,9 +36,9 @@
             ></v-btn
           >
         </template>
-        <v-card width="90%" class="mx-auto">
-          <v-toolbar dark color="primary">
-            <v-btn icon dark @click="dialog = false">
+        <v-card class="mx-auto">
+          <v-toolbar color="primary">
+            <v-btn icon @click="dialog = false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -45,10 +46,10 @@
             autofocus
             v-model="searchCoin"
             class="mx-8"
-            placeholder="Seach..."
+            placeholder="Search.."
           ></v-text-field>
-          <v-card class="mx-auto" max-width="300" tile>
-            <v-list flat height="70vh" style="overflow-y:scroll">
+          <v-card class="mx-auto" tile>
+            <v-list flat style="overflow-y:scroll">
               <v-subheader>Available Coins</v-subheader>
               <v-list-item-group color="primary">
                 <v-list-item
@@ -102,9 +103,12 @@ export default {
       let searchCoin = this.searchCoin
       return this.coins.filter(coin => {
         return (
-          coin.isActive === true &&
-          coin.isFiat === false &&
-          coin.name.toLowerCase().indexOf(searchCoin.toLowerCase()) > -1
+          (coin.isActive === true &&
+            coin.isFiat === false &&
+            coin.symbol.toLowerCase().indexOf(searchCoin.toLowerCase()) > -1) ||
+          (coin.isActive === true &&
+            coin.isFiat === false &&
+            coin.name.toLowerCase().indexOf(searchCoin.toLowerCase()) > -1)
         )
       })
     }

@@ -2,7 +2,8 @@
   <v-container>
     <v-row justify="center">
       <v-col class="mt-5" sm="8" cols="12">
-        <v-card class="sm-px-4 px-4 sm-py-6 py-4">
+        <!-- TODO: delete "light" once figured out the right coloring in vuetify.js -->
+        <v-card light class="sm-px-4 px-4 sm-py-6 py-10">
           <CoinForm
             :coins="coins"
             :exchangeProps="depositCoin"
@@ -12,7 +13,8 @@
           />
           <div class="text-right">
             <v-btn text icon @click="swapCoins">
-              <v-icon>mdi-swap-vertical</v-icon>
+              <!-- TODO: make swap-vertical icon spin once on click -->
+              <v-icon size="30">mdi-swap-vertical</v-icon>
             </v-btn>
           </div>
 
@@ -24,6 +26,29 @@
             class="mt-3"
           />
         </v-card>
+        <div style="display:flex; justify-content:center">
+          <v-alert
+            v-if="error.badAmountErr.state && !error.pairOffline.state"
+            class="mt-4 text-center"
+            color="red accent-2"
+            >{{ error.badAmountErr.msg }}</v-alert
+          ><v-alert
+            v-if="error.pairOffline.state"
+            class="mt-4 text-center"
+            color="red accent-2"
+            >This trading pair is currently not available.</v-alert
+          >
+        </div>
+        <div class="text-center">
+          <v-btn
+            :disabled="error.badAmountErr.state || error.pairOffline.state"
+            color="primary"
+            class="mt-4 px-5"
+            height="45px"
+          >
+            Proceed
+          </v-btn>
+        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -46,6 +71,7 @@ export default {
   data() {
     return {
       coins: [],
+      limit: Object,
       depositCoin: {
         name: 'depositCoin',
         selected: Object,
@@ -60,10 +86,15 @@ export default {
         disabled: true,
         loading: false
       },
-      limit: Object,
       error: {
-        badAmountErr: false,
-        responseErr: String
+        badAmountErr: {
+          state: false,
+          msg: String
+        },
+        pairOffline: {
+          state: false,
+          msg: String
+        }
       }
     }
   },
@@ -95,8 +126,19 @@ export default {
         (this.destinationCoin.selected = this.depositCoin.selected)
       ][0]
     },
+    checkLimit(value, min, max, coin) {
+      if (value < min) {
+        this.error.badAmountErr.msg = `Minimum amount is ${min} ${coin.toUpperCase()}`
+        this.error.badAmountErr.state = true
+      } else if (value > max) {
+        this.error.badAmountErr.msg = `Maximum amount is ${max} ${coin.toUpperCase()}`
+        this.error.badAmountErr.state = true
+      } else {
+        this.error.badAmountErr.state = false
+      }
+    },
 
-    //AXIOS Calls
+    // AXIOS Get ALL Coins
     getCoin() {
       axios({
         method: 'get',
@@ -109,12 +151,14 @@ export default {
           this.coins = response.data.data
         })
         .then(this.setCoin)
-        .catch(response => {
-          this.error.responseErr = response.data.msg
-        })
     },
+    // AXIOS post rate and validate input
     getRate() {
-      this.destinationCoin.loading = true
+      let depo = this.depositCoin
+      let dest = this.destinationCoin
+
+      dest.loading = true
+      dest.amount = 0
       axios({
         method: 'post',
         url: API_URL + 'rate',
@@ -122,33 +166,43 @@ export default {
           'x-api-key': API_KEY
         },
         data: {
-          depositCoin: this.depositCoin.selected.symbol,
-          destinationCoin: this.destinationCoin.selected.symbol
+          depositCoin: depo.selected.symbol,
+          destinationCoin: dest.selected.symbol
+        }
+      }).then(response => {
+        this.checkAvailable()
+        dest.amount = _.round(this.calcRate(response), 6)
+        dest.loading = false
+        this.limit = response.data.data
+
+        this.checkLimit(
+          this.depositCoin.amount,
+          this.limit.limitMinDepositCoin,
+          this.limit.limitMaxDepositCoin,
+          depo.selected.symbol
+        )
+      })
+    },
+    checkAvailable() {
+      let depo = this.depositCoin
+      let dest = this.destinationCoin
+      axios({
+        method: 'post',
+        url: API_URL + 'pairs',
+        headers: {
+          'x-api-key': API_KEY
+        },
+        data: {
+          depositCoin: depo.selected.symbol,
+          destinationCoin: dest.selected.symbol
+        }
+      }).then(response => {
+        if (response.data.data.length === 0) {
+          this.error.pairOffline.state = true
+        } else {
+          this.error.pairOffline.state = false
         }
       })
-        .then(response => {
-          this.destinationCoin.amount = _.round(this.calcRate(response), 6)
-          this.destinationCoin.loading = false
-          this.limit = response.data.data
-          let depoAmount = this.depositCoin.amount
-          let destAmount = this.destinationCoin.amount
-          if (
-            depoAmount < this.limit.limitMinDepositCoin ||
-            depoAmount > this.limit.limitMaxDepositCoin
-          ) {
-            this.error.badAmountErr = true
-          } else if (
-            destAmount < this.limit.limitMinDestinationCoin ||
-            destAmount > this.limit.limitMaxDestinationCoin
-          ) {
-            this.error.badAmountErr = true
-          } else {
-            this.error.badAmountErr = false
-          }
-        })
-        .catch(response => {
-          this.error.responseErr = response.data.msg
-        })
     }
   },
   mounted() {
@@ -157,7 +211,9 @@ export default {
   watch: {
     depositCoin: {
       handler: function() {
-        this.debouncedGetRate()
+        if (this.depositCoin.amount != '' || this.depositCoin.amount !== 0) {
+          this.debouncedGetRate()
+        }
       },
       deep: true
     },
@@ -168,7 +224,7 @@ export default {
     }
   },
   created() {
-    this.debouncedGetRate = _.debounce(this.getRate, 2000)
+    this.debouncedGetRate = _.debounce(this.getRate, 2500)
   }
 }
 </script>
