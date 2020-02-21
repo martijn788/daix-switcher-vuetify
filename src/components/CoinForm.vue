@@ -4,10 +4,13 @@
       <v-text-field
         type="number"
         height="55px"
-        v-model="exchangeProps.amount"
+        :value="exchangeProps.amount"
+        @input="$emit('input', $event)"
         :label="exchangeProps.label + ' ' + this.exchangeProps.selected.name"
         placeholder="Enter Amount"
         class="pt-0 mt-0"
+        :readonly="exchangeProps.disabled"
+        :loading="exchangeProps.loading"
         hide-details
         outlined
       ></v-text-field>
@@ -39,6 +42,7 @@
             </v-btn>
           </v-toolbar>
           <v-text-field
+            autofocus
             v-model="searchCoin"
             class="mx-8"
             placeholder="Seach..."
@@ -106,7 +110,7 @@ export default {
     }
   },
   methods: {
-    selectCoin: function(coin) {
+    selectCoin(coin) {
       this.$emit('select-coin', coin)
       this.dialog = false
     }

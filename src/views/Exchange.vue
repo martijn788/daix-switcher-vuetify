@@ -7,12 +7,21 @@
             :coins="coins"
             :exchangeProps="depositCoin"
             @select-coin="selectCoinDepo"
-            class="mb-3"
+            v-model.number="depositCoin.amount"
+            class=""
           />
+          <div class="text-right">
+            <v-btn text icon @click="swapCoins">
+              <v-icon>mdi-swap-vertical</v-icon>
+            </v-btn>
+          </div>
+
           <CoinForm
             :coins="coins"
             :exchangeProps="destinationCoin"
             @select-coin="selectCoinDesti"
+            v-model.number="destinationCoin.amount"
+            class="mt-3"
           />
         </v-card>
       </v-col>
@@ -24,7 +33,10 @@
 import axios from 'axios'
 import CoinForm from '../components/CoinForm'
 
+import _ from 'lodash'
+
 const API_URL = 'https://api.coinswitch.co/v2/'
+const API_KEY = 'Y72jsy9iwD5uiazajayqp190dhjabn3kjauis'
 
 export default {
   components: {
@@ -44,7 +56,13 @@ export default {
         name: 'destinationCoin',
         selected: Object,
         amount: null,
-        label: 'Get'
+        label: 'Get',
+        disabled: true,
+        loading: false
+      },
+      limit: Object,
+      error: {
+        badAmountErr: false
       }
     }
   },
@@ -55,28 +73,111 @@ export default {
     selectCoinDesti(coin) {
       this.destinationCoin.selected = coin
     },
-    setCoin(response) {
-      this.coins = response.data.data
-      // Get default coin object from co
+    setCoin() {
+      // Get default coin object from coins
       this.depositCoin.selected = this.coins.find(coin => {
-        return coin.name === 'Bitcoin'
+        return coin.symbol === 'btc'
       })
       this.destinationCoin.selected = this.coins.find(coin => {
-        return coin.name === 'Ethereum'
+        return coin.symbol === 'eth'
       })
     },
-    axiosGetCoins() {
-      axios
-        .get(API_URL + 'coins', {
-          headers: {
-            'x-api-key': 'Y72jsy9iwD5uiazajayqp190dhjabn3kjauis'
+    calcRate(response) {
+      console.log(response)
+      return (
+        this.depositCoin.amount * response.data.data.rate -
+        response.data.data.minerFee
+      )
+    },
+    checklimit() {
+      let depoAmount = this.depositCoin.amount
+      if (
+        depoAmount < this.limit.limitMinDepositCoin ||
+        depoAmount > this.limit.limitMaxDepositCoin
+      ) {
+        console.log('Bad Amount')
+      }
+    },
+    swapCoins() {
+      this.depositCoin.selected = [
+        this.destinationCoin.selected,
+        (this.destinationCoin.selected = this.depositCoin.selected)
+      ][0]
+    },
+
+    //AXIOS Calls
+    getCoin() {
+      axios({
+        method: 'get',
+        url: API_URL + 'coins',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      })
+        .then(response => {
+          this.coins = response.data.data
+        })
+        .then(this.setCoin)
+        .catch(response => {
+          console.log(response.data.msg)
+        })
+    },
+    getRate() {
+      this.destinationCoin.loading = true
+      axios({
+        method: 'post',
+        url: API_URL + 'rate',
+        headers: {
+          'x-api-key': API_KEY
+        },
+        data: {
+          depositCoin: this.depositCoin.selected.symbol,
+          destinationCoin: this.destinationCoin.selected.symbol
+        }
+      })
+        .then(response => {
+          this.destinationCoin.amount = _.round(this.calcRate(response), 6)
+          this.destinationCoin.loading = false
+          this.limit = response.data.data
+          let depoAmount = this.depositCoin.amount
+          let destAmount = this.destinationCoin.amount
+          if (
+            depoAmount < this.limit.limitMinDepositCoin ||
+            depoAmount > this.limit.limitMaxDepositCoin
+          ) {
+            this.error.badAmountErr = true
+          } else if (
+            destAmount < this.limit.limitMinDestinationCoin ||
+            destAmount > this.limit.limitMaxDestinationCoin
+          ) {
+            this.error.badAmountErr = true
+          } else {
+            this.error.badAmountErr = false
           }
         })
-        .then(response => this.setCoin(response))
+        .catch(response => {
+          console.log(response.data.msg)
+        })
+    }
+  },
+  mounted() {
+    this.getCoin()
+  },
+  watch: {
+    depositCoin: {
+      handler: function() {
+        this.debouncedGetRate()
+      },
+      deep: true
+    },
+    'destinationCoin.selected': {
+      handler: function() {
+        this.debouncedGetRate()
+      }
     }
   },
   created() {
-    this.axiosGetCoins()
+    this.debouncedGetRate = _.debounce(this.getRate, 2000)
   }
 }
 </script>
