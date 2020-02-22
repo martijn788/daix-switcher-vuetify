@@ -36,7 +36,7 @@
             ></v-btn
           >
         </template>
-        <v-card class="mx-auto mt-5">
+        <v-card class="mx-auto mt-5" style="border-radius:15px">
           <div class="text-right">
             <v-btn icon @click="dialog = false" class="ma-2">
               <v-icon>mdi-close</v-icon>

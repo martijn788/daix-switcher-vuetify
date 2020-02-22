@@ -39,17 +39,19 @@
             >This trading pair is currently not available.</v-alert
           >
         </div>
-
         <v-dialog
-          v-model="dialog"
-          fullscreen
+          v-model="exDialog.dialog"
           hide-overlay
           transition="dialog-bottom-transition"
         >
           <template v-slot:activator="{ on }">
             <div class="text-center">
               <v-btn
-                :disabled="error.badAmountErr.state || error.pairOffline.state"
+                :disabled="
+                  error.badAmountErr.state ||
+                    error.pairOffline.state ||
+                    !destinationCoin.amount
+                "
                 color="primary"
                 class="mt-4 px-5"
                 height="45px"
@@ -59,12 +61,19 @@
               </v-btn>
             </div>
           </template>
-          <v-card class="mx-auto mt-5">
-            <div class="text-right">
-              <v-btn icon @click="dialog = false" class="ma-2">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </div>
+          <v-card
+            class="mx-auto"
+            style="border-radius:15px; position: absolute; bottom: 0;"
+            width="100vw"
+            height="96vh"
+          >
+            <ExchangeDialog
+              :exDialog="exDialog"
+              :destinationCoin="destinationCoin"
+              :depositCoin="depositCoin"
+              :orderDetails="orderDetails"
+              @exchange="getOrder"
+            />
           </v-card>
         </v-dialog>
       </v-col>
@@ -75,6 +84,7 @@
 <script>
 import axios from 'axios'
 import CoinForm from '../components/CoinForm'
+import ExchangeDialog from '../components/ExchangeDialog'
 
 import _ from 'lodash'
 
@@ -83,12 +93,12 @@ const API_KEY = 'Y72jsy9iwD5uiazajayqp190dhjabn3kjauis'
 
 export default {
   components: {
-    CoinForm
+    CoinForm,
+    ExchangeDialog
   },
   name: 'Exchange',
   data() {
     return {
-      dialog: false,
       coins: [],
       limit: Object,
       depositCoin: {
@@ -114,6 +124,17 @@ export default {
           state: false,
           msg: String
         }
+      },
+      exDialog: {
+        destinationAddress: '',
+        terms: false,
+        dialog: false
+      },
+      orderDetails: {
+        exchangeAddress: String,
+        orderId: String,
+        success: false,
+        loading: false
       }
     }
   },
@@ -157,7 +178,7 @@ export default {
       }
     },
 
-    // AXIOS Get ALL Coins
+    // API CALLS
     getCoin() {
       axios({
         method: 'get',
@@ -171,7 +192,6 @@ export default {
         })
         .then(this.setCoin)
     },
-    // AXIOS post rate and validate input
     getRate() {
       let depo = this.depositCoin
       let dest = this.destinationCoin
@@ -200,6 +220,34 @@ export default {
           this.limit.limitMaxDepositCoin,
           depo.selected.symbol
         )
+      })
+    },
+    getOrder() {
+      let depo = this.depositCoin
+      let dest = this.destinationCoin
+
+      this.orderDetails.loading = true
+      axios({
+        method: 'post',
+        url: API_URL + 'order',
+        headers: {
+          'x-api-key': API_KEY
+        },
+        data: {
+          depositCoin: depo.selected.symbol,
+          destinationCoin: dest.selected.symbol,
+          depositCoinAmount: depo.amount,
+          destinationAddress: {
+            address: this.exDialog.destinationAddress,
+            tag: null
+          }
+        }
+      }).then(response => {
+        let data = response.data.data
+        this.orderDetails.orderId = data.orderId
+        this.orderDetails.exchangeAddress = data.exchangeAddress.address
+        this.orderDetails.success = true
+        this.orderDetails.loading = false
       })
     },
     checkAvailable() {
