@@ -65,7 +65,7 @@
             class="mx-auto"
             style="border-radius:15px; position: absolute; bottom: 0;"
             width="100vw"
-            height="96vh"
+            height="80vh"
           >
             <ExchangeDialog
               :dialog="dialog"
