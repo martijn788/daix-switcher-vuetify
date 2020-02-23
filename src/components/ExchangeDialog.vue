@@ -77,7 +77,7 @@
               indeterminate
               color="primary"
               width="2"
-              size="20"
+              size="17"
               class="mr-2"
             ></v-progress-circular
             >{{ this.orderDetails.status }}
@@ -144,6 +144,7 @@ export default {
       this.dialog.state = false
       this.orderDetails.confirmed = false
       this.orderDetails.destinationAddress = ''
+      this.orderDetails.exchangeAddress = ''
       this.dialog.terms = false
     }
   }

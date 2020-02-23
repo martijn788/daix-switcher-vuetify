@@ -1,8 +1,15 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <v-col class="mt-5" sm="8" cols="12">
-        <!-- TODO: delete "light" once figured out the right coloring in vuetify.js -->
+      <v-col class="" sm="8" cols="12">
+        <div class="font-weight-light">
+          <h1 class="mb-5 pt-10 font-regular" style="line-height:1.05">
+            Change Crypto For Better Rates
+          </h1>
+          <p class="subtitle-1 mb-10" style="line-height:1.2">
+            Over 300+ coins without needing to signup for an account.
+          </p>
+        </div>
         <v-card class="sm-px-4 px-4 sm-py-6 py-10">
           <CoinForm
             :coins="coins"
@@ -11,6 +18,7 @@
             v-model.number="depositCoin.amount"
             class=""
           />
+
           <div class="text-right">
             <v-btn text icon @click="swapCoins">
               <!-- TODO: make swap-vertical icon spin once on click -->
@@ -26,19 +34,6 @@
             class="mt-3"
           />
         </v-card>
-        <div style="display:flex; justify-content:center">
-          <v-alert
-            v-if="error.badAmountErr.state && !error.pairOffline.state"
-            class="mt-4 text-center"
-            color="red accent-2"
-            >{{ error.badAmountErr.msg }}</v-alert
-          ><v-alert
-            v-if="error.pairOffline.state"
-            class="mt-4 text-center"
-            color="red accent-2"
-            >This trading pair is currently not available.</v-alert
-          >
-        </div>
         <v-dialog
           v-model="dialog.state"
           hide-overlay
@@ -277,17 +272,16 @@ export default {
     this.getCoin()
   },
   watch: {
-    depositCoin: {
+    'depositCoin.amount': {
       handler: function() {
         if (this.depositCoin.amount != '' || this.depositCoin.amount !== 0) {
           this.debouncedGetRate()
         }
-      },
-      deep: true
+      }
     },
     'destinationCoin.selected': {
       handler: function() {
-        this.debouncedGetRate()
+        this.getRate()
       }
     }
   },
@@ -296,3 +290,5 @@ export default {
   }
 }
 </script>
+
+<style scoped></style>
