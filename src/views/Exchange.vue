@@ -34,6 +34,19 @@
             class="mt-3"
           />
         </v-card>
+        <div style="display:flex; justify-content:center">
+          <v-alert
+            v-if="error.badAmountErr.state && !error.pairOffline.state"
+            class="mt-4 text-center"
+            color="red accent-2"
+            >{{ error.badAmountErr.msg }}</v-alert
+          ><v-alert
+            v-if="error.pairOffline.state"
+            class="mt-4 text-center"
+            color="red accent-2"
+            >This trading pair is currently not available.</v-alert
+          >
+        </div>
         <v-dialog
           v-model="dialog.state"
           hide-overlay
@@ -280,6 +293,11 @@ export default {
       }
     },
     'destinationCoin.selected': {
+      handler: function() {
+        this.getRate()
+      }
+    },
+    'depositCoin.selected': {
       handler: function() {
         this.getRate()
       }
