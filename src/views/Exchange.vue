@@ -3,7 +3,7 @@
     <v-row justify="center">
       <v-col class="mt-5" sm="8" cols="12">
         <!-- TODO: delete "light" once figured out the right coloring in vuetify.js -->
-        <v-card light class="sm-px-4 px-4 sm-py-6 py-10">
+        <v-card class="sm-px-4 px-4 sm-py-6 py-10">
           <CoinForm
             :coins="coins"
             :exchangeProps="depositCoin"
@@ -40,7 +40,7 @@
           >
         </div>
         <v-dialog
-          v-model="exDialog.dialog"
+          v-model="dialog.state"
           hide-overlay
           transition="dialog-bottom-transition"
         >
@@ -68,7 +68,7 @@
             height="96vh"
           >
             <ExchangeDialog
-              :exDialog="exDialog"
+              :dialog="dialog"
               :destinationCoin="destinationCoin"
               :depositCoin="depositCoin"
               :orderDetails="orderDetails"
@@ -125,16 +125,17 @@ export default {
           msg: String
         }
       },
-      exDialog: {
-        destinationAddress: '',
+      dialog: {
         terms: false,
-        dialog: false
+        state: false
       },
       orderDetails: {
         exchangeAddress: String,
         orderId: String,
-        success: false,
-        loading: false
+        confirmed: false,
+        loading: false,
+        destinationAddress: '',
+        status: 'Awaiting Deposit'
       }
     }
   },
@@ -238,7 +239,7 @@ export default {
           destinationCoin: dest.selected.symbol,
           depositCoinAmount: depo.amount,
           destinationAddress: {
-            address: this.exDialog.destinationAddress,
+            address: this.orderDetails.destinationAddress,
             tag: null
           }
         }
@@ -246,7 +247,7 @@ export default {
         let data = response.data.data
         this.orderDetails.orderId = data.orderId
         this.orderDetails.exchangeAddress = data.exchangeAddress.address
-        this.orderDetails.success = true
+        this.orderDetails.confirmed = true
         this.orderDetails.loading = false
       })
     },
