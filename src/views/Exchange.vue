@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <v-col class="" sm="8" cols="12">
+      <v-col sm="8" cols="12">
         <div class="font-weight-light">
           <h1 class="mb-5 pt-10 font-regular" style="line-height:1.05">
             Change Crypto For Better Rates
@@ -12,11 +12,10 @@
         </div>
         <v-card class="sm-px-4 px-4 sm-py-6 py-10">
           <CoinForm
+            v-model.number="depositCoin.amount"
             :coins="coins"
             :exchangeProps="depositCoin"
             @select-coin="selectCoinDepo"
-            v-model.number="depositCoin.amount"
-            class=""
           />
 
           <div class="text-right">
@@ -273,11 +272,7 @@ export default {
           destinationCoin: dest.selected.symbol
         }
       }).then(response => {
-        if (response.data.data.length === 0) {
-          this.error.pairOffline.state = true
-        } else {
-          this.error.pairOffline.state = false
-        }
+        this.error.pairOffline.state = response.data.data.length === 0;
       })
     }
   },
@@ -287,7 +282,7 @@ export default {
   watch: {
     'depositCoin.amount': {
       handler: function() {
-        if (this.depositCoin.amount != '' || this.depositCoin.amount !== 0) {
+        if (this.depositCoin.amount !== '' || this.depositCoin.amount !== 0) {
           this.debouncedGetRate()
         }
       }

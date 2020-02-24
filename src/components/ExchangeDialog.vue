@@ -17,26 +17,26 @@
     </v-card-title>
     <div id="step-one" v-if="orderDetails.confirmed === false" class="mx-3">
       <!-- TODO: add arrow icon pointing right -->
-
       <v-card-text class="font-weight-light">
         <!-- TODO: fix form validation for address -->
         <v-text-field
           v-model="orderDetails.destinationAddress"
           :label="'Enter ' + this.destinationCoin.selected.name + ' Address'"
           required
-        ></v-text-field>
+        />
         <div>
           <v-checkbox v-model="dialog.terms" color="green">
             <template v-slot:label>
               <div>
                 Do you accept the
-                <a href="javascript:;" @click.stop="openPage(termsPath)"
-                  >terms</a
-                >
+                <a href="javascript:" @click.stop="openPage(termsPath)">
+                  terms
+                </a>
                 and
-                <a href="javascript:;" @click.stop="openPage(conditionsPath)"
-                  >conditions</a
-                >?
+                <a href="javascript:" @click.stop="openPage(conditionsPath)">
+                  conditions
+                </a>
+                ?
               </div>
             </template>
           </v-checkbox>
@@ -56,16 +56,17 @@
     </div>
     <div id="step-two" v-if="orderDetails.confirmed" class="mx-3">
       <!-- TODO: add arrow icon pointing right -->
-
       <v-card-text class="font-weight-light text-center">
         <div class="headline mb-3">
           <span class="font-weight-light">Send</span>
-          <span class="font-weight-thick" style="color:#76FF03">{{
-            ' ' +
-              depositCoin.amount +
+          <span class="font-weight-thick" style="color:#76FF03">
+            {{
               ' ' +
-              depositCoin.selected.symbol.toUpperCase()
-          }}</span>
+                depositCoin.amount +
+                ' ' +
+                depositCoin.selected.symbol.toUpperCase()
+            }}
+          </span>
         </div>
         <p class="mb-0">
           Copy and paste the address, or scan the QR code from your
@@ -79,15 +80,14 @@
               width="2"
               size="17"
               class="mr-2"
-            ></v-progress-circular
-            >{{ this.orderDetails.status }}
+            />
+            {{ this.orderDetails.status }}
           </v-chip>
         </div>
-
         <qrcode
           :value="orderDetails.exchangeAddress"
           :options="{ margin: 1, scale: 5 }"
-        ></qrcode>
+        />
         <div class="mx-auto mt-5" style="max-width:500px">
           <CopyField
             :id="'1'"
@@ -97,14 +97,12 @@
             :dense="true"
             class="mb-4"
           />
-
           <CopyField
             :id="'2'"
             :orderDetails="orderDetails"
             :vmodel="orderDetails.destinationAddress"
             :label="'RECIPIENT ADDRESS'"
           />
-
           <CopyField
             :id="'3'"
             :orderDetails="orderDetails"
